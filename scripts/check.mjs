@@ -1,0 +1,13 @@
+import puppeteer from 'puppeteer-core'
+const b = await puppeteer.launch({ executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless:'new', args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--hide-scrollbars'], defaultViewport:{width:1440,height:900}})
+const p = await b.newPage()
+await p.goto('http://localhost:5273',{waitUntil:'networkidle2'})
+await p.evaluate(()=>{document.documentElement.style.scrollBehavior='auto'})
+await p.evaluate(()=>window.scrollTo(0, 2400))
+await new Promise(r=>setTimeout(r,4500))
+const counters = await p.evaluate(()=>[...document.querySelectorAll('.tabular-nums')].map(e=>e.textContent))
+const overflow = await p.evaluate(()=>({docW: document.documentElement.scrollWidth, winW: window.innerWidth}))
+const focusables = await p.evaluate(()=>document.querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])').length)
+const imgAlts = await p.evaluate(()=>[...document.images].filter(i=>!i.alt).length)
+console.log(JSON.stringify({counters, overflow, focusables, imagesMissingAlt: imgAlts}))
+await b.close()
